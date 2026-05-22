@@ -1,0 +1,47 @@
+# Requirements for Kintsugi E-commerce Search Engine
+# =================================================
+
+# Core dependencies
+pandas>=1.3.0
+numpy>=1.21.0
+
+# Web framework
+flask>=2.0.0
+
+# Text processing and NLP
+nltk>=3.7
+scikit-learn>=1.0.0
+
+# Vector search and embeddings
+sentence-transformers>=2.2.0
+torch>=1.9.0
+
+# Graph processing for PageRank
+networkx>=2.6.0
+
+# Advanced fuzzy matching
+fuzzywuzzy>=0.18.0
+python-Levenshtein>=0.12.0
+
+# Phonetic matching
+phonetics>=1.0.5
+
+# Mathematical and statistical libraries
+scipy>=1.7.0
+
+# JSON handling and data processing
+ujson>=4.0.0
+
+# Development and testing
+pytest>=6.0.0
+pytest-cov>=2.12.0
+
+# Documentation
+sphinx>=4.0.0
+sphinx-rtd-theme>=0.5.0
+
+# Optional: For advanced text processing
+spacy>=3.4.0
+
+# Optional: For better performance
+numba>=0.56.0

@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kintsugi Search + Recommendation Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .search-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .search-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .option-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .option-btn.active {
+            background: #ffd700;
+            border-color: #ffd700;
+            color: #333;
+        }
+
+        .kintsugi-insights {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .kintsugi-insights h3 {
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .insights-list {
+            list-style: none;
+        }
+
+        .insights-list li {
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .repair-notes {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .repair-notes h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .repair-notes ul {
+            list-style: none;
+        }
+
+        .repair-notes li {
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .result-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .result-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ffd700, #ffed4e);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .result-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .result-score {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            background: #f8f9fa;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .result-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            background: #ffd700;
+            border-color: #ffd700;
+        }
+
+        .recommendations-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .recommendations-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .recommendations-header h2 {
+            color: #333;
+            font-size: 1.8rem;
+        }
+
+        .refresh-btn {
+            padding: 10px 20px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .recommendation-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .recommendation-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .recommendation-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ffd700, #ffed4e);
+        }
+
+        .recommendation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .recommendation-score {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .recommendation-meta {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .meta-tag {
+            background: #f8f9fa;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .page-btn {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover {
+            background: #ffd700;
+            border-color: #ffd700;
+        }
+
+        .page-btn.active {
+            background: #ffd700;
+            border-color: #ffd700;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .search-options {
+                justify-content: center;
+            }
+
+            .result-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .result-meta {
+                justify-content: center;
+            }
+
+            .recommendation-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .recommendation-meta {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 Kintsugi Search + Recommendation Engine</h1>
+            <p>Finding beauty in imperfection, enhancing every search and recommendation</p>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search for products... (try 'samsng galaxy' or 'noise cancelling headphnes')">
+                <button id="searchBtn" class="search-btn">🔍 Search</button>
+            </div>
+            
+            <div class="search-options">
+                <button class="option-btn active" data-type="comprehensive">Comprehensive</button>
+                <button class="option-btn" data-type="tfidf">Text Search</button>
+                <button class="option-btn" data-type="vector">Semantic</button>
+                <button class="option-btn" data-type="phrase">Phrase</button>
+            </div>
+
+            <div id="kintsugiInsights" class="kintsugi-insights hidden">
+                <h3>💫 Kintsugi Insights</h3>
+                <ul id="insightsList" class="insights-list"></ul>
+            </div>
+
+            <div id="repairNotes" class="repair-notes hidden">
+                <h4>🔧 Query Repair Notes</h4>
+                <ul id="repairList"></ul>
+            </div>
+        </div>
+
+        <div class="recommendations-container">
+            <div class="recommendations-header">
+                <h2>🎯 Personalized Recommendations</h2>
+                <button id="refreshRecommendations" class="refresh-btn">🔄 Refresh</button>
+            </div>
+            <div id="recommendationsList" class="loading">Loading recommendations...</div>
+        </div>
+
+        <div class="results-container">
+            <div id="resultsHeader" class="hidden">
+                <h2>🔍 Search Results</h2>
+                <div id="resultsInfo"></div>
+            </div>
+            <div id="resultsList" class="loading hidden">Loading results...</div>
+            <div id="pagination" class="pagination hidden"></div>
+        </div>
+
+        <div class="stats-container">
+            <h2>📊 System Analytics</h2>
+            <div id="statsGrid" class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalProducts">-</div>
+                    <div class="stat-label">Total Products</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalSearches">-</div>
+                    <div class="stat-label">Total Searches</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="repairSuccess">-</div>
+                    <div class="stat-label">Repair Success</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avgScore">-</div>
+                    <div class="stat-label">Avg Score</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = 'user_' + Math.floor(Math.random() * 10000);
+        let currentPage = 1;
+        let currentSearchType = 'comprehensive';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRecommendations();
+            loadAnalytics();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Search functionality
+            document.getElementById('searchBtn').addEventListener('click', performSearch);
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            // Search type selection
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentSearchType = this.dataset.type;
+                });
+            });
+
+            // Recommendations refresh
+            document.getElementById('refreshRecommendations').addEventListener('click', loadRecommendations);
+        }
+
+        async function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            const resultsContainer = document.getElementById('resultsList');
+            const resultsHeader = document.getElementById('resultsHeader');
+            const pagination = document.getElementById('pagination');
+
+            // Show loading
+            resultsContainer.innerHTML = '<div class="loading">Searching...</div>';
+            resultsContainer.classList.remove('hidden');
+            resultsHeader.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        search_type: currentSearchType,
+                        user_id: currentUser,
+                        page: currentPage,
+                        per_page: 20
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    resultsContainer.innerHTML = `<div class="loading">Error: ${data.error}</div>`;
+                    return;
+                }
+
+                // Display results
+                displayResults(data);
+                displayKintsugiInsights(data.kintsugi_insights);
+                displayRepairNotes(data.repair_notes, data.repair_successful);
+
+                // Update pagination
+                updatePagination(data);
+
+            } catch (error) {
+                resultsContainer.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
+            }
+        }
+
+        function displayResults(data) {
+            const resultsContainer = document.getElementById('resultsList');
+            const resultsInfo = document.getElementById('resultsInfo');
+
+            if (data.results.length === 0) {
+                resultsContainer.innerHTML = '<div class="loading">No results found</div>';
+                return;
+            }
+
+            // Display results info
+            resultsInfo.innerHTML = `
+                <p>Found ${data.total_results} results in ${data.search_time}s</p>
+                ${data.repaired_query !== data.query ? `<p>Query repaired: "${data.query}" → "${data.repaired_query}"</p>` : ''}
+            `;
+
+            // Display results
+            resultsContainer.innerHTML = data.results.map(result => `
+                <div class="result-item">
+                    <div class="result-header">
+                        <div class="result-title">${result.document?.Brand || 'Unknown'} ${result.document?.Type || 'Product'}</div>
+                        <div class="result-score">${result.unified_score?.toFixed(3) || 'N/A'}</div>
+                    </div>
+                    <div class="result-meta">
+                        <span class="meta-item">${result.kintsugi_quality || 'Unknown'}</span>
+                        <span class="meta-item">${result.methods_used?.join(', ') || 'Unknown'}</span>
+                        <span class="meta-item">${result.match_type || 'Unknown'}</span>
+                    </div>
+                    <div class="result-description">
+                        ${result.document?.Features || result.document?.Description || 'No description available'}
+                    </div>
+                    <div class="result-actions">
+                        <button class="action-btn" onclick="recordInteraction(${result.doc_id || result.product_id}, 'click')">👆 Click</button>
+                        <button class="action-btn" onclick="recordInteraction(${result.doc_id || result.product_id}, 'view')">👁️ View</button>
+                        <button class="action-btn" onclick="recordInteraction(${result.doc_id || result.product_id}, 'purchase')">🛒 Purchase</button>
+                    </div>
+                </div>
+            `).join('');
+
+            resultsContainer.classList.remove('hidden');
+        }
+
+        function displayKintsugiInsights(insights) {
+            const insightsContainer = document.getElementById('kintsugiInsights');
+            const insightsList = document.getElementById('insightsList');
+
+            if (insights && insights.length > 0) {
+                insightsList.innerHTML = insights.map(insight => `<li>${insight}</li>`).join('');
+                insightsContainer.classList.remove('hidden');
+            } else {
+                insightsContainer.classList.add('hidden');
+            }
+        }
+
+        function displayRepairNotes(notes, successful) {
+            const notesContainer = document.getElementById('repairNotes');
+            const notesList = document.getElementById('repairList');
+
+            if (notes && notes.length > 0) {
+                notesList.innerHTML = notes.map(note => `<li>${note}</li>`).join('');
+                notesContainer.classList.remove('hidden');
+            } else {
+                notesContainer.classList.add('hidden');
+            }
+        }
+
+        function updatePagination(data) {
+            const pagination = document.getElementById('pagination');
+            
+            if (data.total_pages <= 1) {
+                pagination.classList.add('hidden');
+                return;
+            }
+
+            let paginationHTML = '';
+            
+            // Previous button
+            paginationHTML += `
+                <button class="page-btn" ${!data.has_prev ? 'disabled' : ''} onclick="changePage(${data.page - 1})">
+                    ← Previous
+                </button>
+            `;
+
+            // Page numbers
+            for (let i = 1; i <= data.total_pages; i++) {
+                if (i === data.page || (i >= data.page - 2 && i <= data.page + 2)) {
+                    paginationHTML += `
+                        <button class="page-btn ${i === data.page ? 'active' : ''}" onclick="changePage(${i})">
+                            ${i}
+                        </button>
+                    `;
+                }
+            }
+
+            // Next button
+            paginationHTML += `
+                <button class="page-btn" ${!data.has_next ? 'disabled' : ''} onclick="changePage(${data.page + 1})">
+                    Next →
+                </button>
+            `;
+
+            pagination.innerHTML = paginationHTML;
+            pagination.classList.remove('hidden');
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            performSearch();
+        }
+
+        async function loadRecommendations() {
+            const recommendationsList = document.getElementById('recommendationsList');
+            recommendationsList.innerHTML = '<div class="loading">Loading recommendations...</div>';
+
+            try {
+                const response = await fetch('/recommendations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: currentUser,
+                        top_k: 10
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    recommendationsList.innerHTML = `<div class="loading">Error: ${data.error}</div>`;
+                    return;
+                }
+
+                if (data.recommendations.length === 0) {
+                    recommendationsList.innerHTML = '<div class="loading">No recommendations available</div>';
+                    return;
+                }
+
+                recommendationsList.innerHTML = data.recommendations.map(rec => `
+                    <div class="recommendation-item">
+                        <div class="recommendation-header">
+                            <div class="recommendation-title">${rec.product?.Brand || 'Unknown'} ${rec.product?.Type || 'Product'}</div>
+                            <div class="recommendation-score">${rec.unified_score?.toFixed(3) || 'N/A'}</div>
+                        </div>
+                        <div class="recommendation-meta">
+                            <span class="meta-tag">${rec.kintsugi_quality || 'Unknown'}</span>
+                            <span class="meta-tag">${rec.methods_used?.join(', ') || 'Unknown'}</span>
+                            <span class="meta-tag">${rec.reason || 'Unknown'}</span>
+                        </div>
+                        <div class="result-description">
+                            ${rec.product?.Features || rec.product?.Description || 'No description available'}
+                        </div>
+                        <div class="result-actions">
+                            <button class="action-btn" onclick="recordInteraction(${rec.product_id}, 'click')">👆 Click</button>
+                            <button class="action-btn" onclick="recordInteraction(${rec.product_id}, 'view')">👁️ View</button>
+                            <button class="action-btn" onclick="recordInteraction(${rec.product_id}, 'purchase')">🛒 Purchase</button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                recommendationsList.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function recordInteraction(productId, interactionType) {
+            try {
+                await fetch('/interaction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: currentUser,
+                        product_id: productId,
+                        interaction_type: interactionType
+                    })
+                });
+
+                // Refresh recommendations after interaction
+                loadRecommendations();
+            } catch (error) {
+                console.error('Error recording interaction:', error);
+            }
+        }
+
+        async function loadAnalytics() {
+            try {
+                const response = await fetch('/analytics');
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error('Analytics error:', data.error);
+                    return;
+                }
+
+                // Update stats display
+                document.getElementById('totalProducts').textContent = 
+                    data.search_analytics?.tfidf_stats?.total_documents || '-';
+                document.getElementById('totalSearches').textContent = 
+                    data.search_analytics?.kintsugi_notes_count || '-';
+                document.getElementById('repairSuccess').textContent = 
+                    data.repair_analytics?.success_rate?.toFixed(1) + '%' || '-';
+                document.getElementById('avgScore').textContent = 
+                    data.scoring_analytics?.overall?.mean_unified_score?.toFixed(3) || '-';
+
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+    </script>
+</body>
+</html>

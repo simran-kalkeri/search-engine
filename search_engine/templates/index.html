@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kintsugi E-commerce Search Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .search-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            min-width: 300px;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-type {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            font-size: 16px;
+            outline: none;
+            background: white;
+            cursor: pointer;
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .suggestions {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.2s ease;
+        }
+
+        .suggestion-item:hover {
+            background: #e9ecef;
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .results-count {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .search-time {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .kintsugi-insights {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-style: italic;
+            text-align: center;
+            color: #2d3436;
+        }
+
+        .result-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .result-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #ff6b6b;
+            background: #fff;
+        }
+
+        .click-hint {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            opacity: 0.8;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .result-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .result-type {
+            background: #e9ecef;
+            color: #495057;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .result-quality {
+            font-size: 1.2rem;
+            margin-left: 10px;
+        }
+
+        .result-content {
+            margin-top: 15px;
+        }
+
+        .product-field {
+            margin-bottom: 8px;
+            padding: 5px 0;
+        }
+
+        .product-field strong {
+            color: #667eea;
+            margin-right: 10px;
+        }
+
+        .highlighted-text {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: monospace;
+            border-left: 4px solid #ffc107;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        /* Recommendations Styles */
+        .recommendations-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .recommendations-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .recommendations-header h2 {
+            color: #333;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .recommendations-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .recommendations-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .recommendations-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .recommendation-item {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .recommendation-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-left-color: #ff6b6b;
+            background: #fff;
+        }
+
+        .recommendation-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .recommendation-details {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-reason {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+        }
+
+        .kintsugi-symbols {
+            font-size: 1.5rem;
+            margin-right: 5px;
+        }
+
+        .quality-perfect { color: #28a745; }
+        .quality-excellent { color: #17a2b8; }
+        .quality-good { color: #ffc107; }
+        .quality-fair { color: #fd7e14; }
+        .quality-poor { color: #dc3545; }
+
+        .kintsugi-highlights {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .highlight-item {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        .preview-text {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-style: italic;
+            border-left: 4px solid #667eea;
+        }
+
+        .primary-info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #2196f3;
+        }
+
+        .secondary-info {
+            background: #f3e5f5;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #9c27b0;
+        }
+
+        .more-features {
+            font-style: italic;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .pagination-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .page-info {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .search-input {
+                min-width: 100%;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 Kintsugi Search Engine 🌟</h1>
+            <p>Where imperfect queries find perfect results</p>
+        </div>
+
+        <div class="search-container">
+            <form class="search-form" id="searchForm">
+                <input type="text" id="searchInput" class="search-input" 
+                       placeholder="Search for products... (try 'samsng galaxy' for Kintsugi magic!)" 
+                       autocomplete="off">
+                <select id="searchType" class="search-type">
+                    <option value="auto">Auto</option>
+                    <option value="exact">Exact</option>
+                    <option value="fuzzy">Fuzzy</option>
+                </select>
+                <button type="submit" class="search-btn" id="searchBtn">Search</button>
+            </form>
+            <div id="suggestions" class="suggestions"></div>
+        </div>
+
+        <div class="results-container" id="resultsContainer" style="display: none;">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount">0 results</div>
+                <div class="search-time" id="searchTime">0.000s</div>
+            </div>
+            <div id="kintsugiInsights" class="kintsugi-insights"></div>
+            <div id="resultsList"></div>
+            <div id="pagination" class="pagination" style="display: none;">
+                <button id="prevBtn" class="pagination-btn" disabled>Previous</button>
+                <span id="pageInfo" class="page-info">Page 1 of 1</span>
+                <button id="nextBtn" class="pagination-btn" disabled>Next</button>
+            </div>
+        </div>
+
+        <!-- Recommendations Section -->
+        <div id="recommendationsContainer" class="recommendations-container" style="display: none;">
+            <div class="recommendations-header">
+                <h2>🎯 Personalized Recommendations</h2>
+                <button id="getRecommendationsBtn" class="recommendations-btn">Get Recommendations</button>
+            </div>
+            <div id="recommendationsList" class="recommendations-list"></div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            Searching with Kintsugi magic...
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchForm = document.getElementById('searchForm');
+        const searchType = document.getElementById('searchType');
+        const searchBtn = document.getElementById('searchBtn');
+        const suggestions = document.getElementById('suggestions');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsCount = document.getElementById('resultsCount');
+        const searchTime = document.getElementById('searchTime');
+        const kintsugiInsights = document.getElementById('kintsugiInsights');
+        const resultsList = document.getElementById('resultsList');
+        const loading = document.getElementById('loading');
+        const pagination = document.getElementById('pagination');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const pageInfo = document.getElementById('pageInfo');
+        
+        // Recommendations elements
+        const recommendationsContainer = document.getElementById('recommendationsContainer');
+        const getRecommendationsBtn = document.getElementById('getRecommendationsBtn');
+        const recommendationsList = document.getElementById('recommendationsList');
+
+        let searchTimeout;
+        let currentQuery = '';
+        let currentPage = 1;
+        let currentTotalPages = 1;
+
+        // Search input with suggestions
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            clearTimeout(searchTimeout);
+            
+            if (query.length >= 2) {
+                searchTimeout = setTimeout(() => {
+                    fetchSuggestions(query);
+                }, 300);
+            } else {
+                suggestions.style.display = 'none';
+            }
+        });
+
+        // Search form submission
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = searchInput.value.trim();
+            if (query) {
+                currentQuery = query;
+                currentPage = 1;
+                performSearch(query, 1);
+            }
+        });
+
+        // Fetch search suggestions
+        async function fetchSuggestions(query) {
+            try {
+                const response = await fetch('/suggestions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+                
+                const data = await response.json();
+                displaySuggestions(data.suggestions);
+            } catch (error) {
+                console.error('Error fetching suggestions:', error);
+            }
+        }
+
+        // Display suggestions
+        function displaySuggestions(suggestionsList) {
+            if (suggestionsList.length === 0) {
+                suggestions.style.display = 'none';
+                return;
+            }
+
+            suggestions.innerHTML = suggestionsList.map(suggestion => 
+                `<div class="suggestion-item" onclick="selectSuggestion('${suggestion}')">${suggestion}</div>`
+            ).join('');
+            suggestions.style.display = 'block';
+        }
+
+        // Select suggestion
+        function selectSuggestion(suggestion) {
+            searchInput.value = suggestion;
+            suggestions.style.display = 'none';
+            currentQuery = suggestion;
+            currentPage = 1;
+            performSearch(suggestion, 1);
+        }
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !suggestions.contains(e.target)) {
+                suggestions.style.display = 'none';
+            }
+        });
+
+        // Perform search
+        async function performSearch(query, page = 1) {
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Searching...';
+            loading.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            suggestions.style.display = 'none';
+
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        search_type: searchType.value,
+                        page: page,
+                        per_page: 20
+                    })
+                });
+
+                const data = await response.json();
+                displayResults(data);
+                
+                // Show recommendations after search
+                showRecommendationsAfterSearch();
+            } catch (error) {
+                console.error('Search error:', error);
+                displayError('Search failed. Please try again.');
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Search';
+                loading.style.display = 'none';
+            }
+        }
+
+        // Display search results
+        function displayResults(data) {
+            if (data.error) {
+                displayError(data.error);
+                return;
+            }
+
+            // Update pagination state
+            currentPage = data.page;
+            currentTotalPages = data.total_pages;
+
+            resultsCount.textContent = `${data.total_results} results`;
+            searchTime.textContent = `${data.search_time}s`;
+            kintsugiInsights.textContent = data.kintsugi_insights;
+
+            if (data.results.length === 0) {
+                resultsList.innerHTML = '<div class="error">No results found. Try a different query or check for typos.</div>';
+                pagination.style.display = 'none';
+            } else {
+                resultsList.innerHTML = data.results.map(result => createResultHTML(result)).join('');
+                
+                // Update pagination controls
+                updatePaginationControls(data);
+                pagination.style.display = 'block';
+            }
+
+            resultsContainer.style.display = 'block';
+        }
+
+        // Update pagination controls
+        function updatePaginationControls(data) {
+            pageInfo.textContent = `Page ${data.page} of ${data.total_pages}`;
+            prevBtn.disabled = !data.has_prev;
+            nextBtn.disabled = !data.has_next;
+        }
+
+        // Pagination event listeners
+        prevBtn.addEventListener('click', function() {
+            if (currentPage > 1 && currentQuery) {
+                currentPage--;
+                performSearch(currentQuery, currentPage);
+            }
+        });
+
+        nextBtn.addEventListener('click', function() {
+            if (currentPage < currentTotalPages && currentQuery) {
+                currentPage++;
+                performSearch(currentQuery, currentPage);
+            }
+        });
+
+        // Create result HTML
+        function createResultHTML(result) {
+            const qualityClass = `quality-${result.kintsugi_quality}`;
+
+            let primaryInfo = '';
+            if (result.primary_info) {
+                primaryInfo = `
+                    <div class="primary-info">
+                        <strong>🏷️ Primary Info:</strong><br>
+                        ${Object.entries(result.primary_info).map(([key, value]) => 
+                            `<div class="product-field"><strong>${key}:</strong> ${value}</div>`
+                        ).join('')}
+                    </div>
+                `;
+            }
+
+            let secondaryInfo = '';
+            if (result.secondary_info) {
+                const features = Object.entries(result.secondary_info).slice(0, 8);
+                secondaryInfo = `
+                    <div class="secondary-info">
+                        <strong>🔧 Features:</strong><br>
+                        ${features.map(([key, value]) => 
+                            `<div class="product-field"><strong>${key}:</strong> ${value}</div>`
+                        ).join('')}
+                        ${Object.keys(result.secondary_info).length > 8 ? 
+                            `<div class="more-features">... and ${Object.keys(result.secondary_info).length - 8} more features</div>` : ''}
+                    </div>
+                `;
+            }
+
+            let highlights = '';
+            if (result.highlights && result.highlights.length > 0) {
+                highlights = `
+                    <div class="kintsugi-highlights">
+                        <strong>✨ Kintsugi Repairs:</strong><br>
+                        ${result.highlights.map(h => `<div class="highlight-item">${h}</div>`).join('')}
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="result-item" onclick="clickProduct('${result.id}', '${result.title || 'Product'}')">
+                    <div class="result-header">
+                        <div>
+                            <span class="result-score">${result.score}</span>
+                            <span class="result-type">${result.match_type}</span>
+                            <span class="result-quality ${qualityClass}">
+                                ${result.kintsugi_quality}
+                            </span>
+                        </div>
+                        <div class="click-hint">👆 Click to make trending!</div>
+                    </div>
+                    <div class="result-content">
+                        ${primaryInfo}
+                        ${secondaryInfo}
+                        ${highlights}
+                        <div class="preview-text">
+                            <strong>📝 Preview:</strong> ${result.preview}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Display error
+        function displayError(message) {
+            resultsList.innerHTML = `<div class="error">${message}</div>`;
+            pagination.style.display = 'none';
+            resultsContainer.style.display = 'block';
+        }
+
+        // Recommendations functionality
+        getRecommendationsBtn.addEventListener('click', async function() {
+            try {
+                loading.style.display = 'block';
+                recommendationsList.innerHTML = '';
+                
+                const response = await fetch('/recommendations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: 'user_' + Math.random().toString(36).substr(2, 9),
+                        top_k: 6
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    recommendationsList.innerHTML = `<div class="error">${data.error}</div>`;
+                } else {
+                    displayRecommendations(data.recommendations);
+                    recommendationsContainer.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+                recommendationsList.innerHTML = '<div class="error">Failed to load recommendations</div>';
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // Display recommendations
+        function displayRecommendations(recommendations) {
+            if (recommendations.length === 0) {
+                recommendationsList.innerHTML = '<div class="no-results">No recommendations available</div>';
+                return;
+            }
+
+            recommendationsList.innerHTML = recommendations.map(rec => `
+                <div class="recommendation-item" onclick="clickProduct('${rec.id || 'unknown'}', '${rec.title || 'Product'}')">
+                    <div class="recommendation-title">${rec.title || 'Product'}</div>
+                    <div class="recommendation-details">
+                        <div><strong>Brand:</strong> ${rec.brand || 'N/A'}</div>
+                        <div><strong>Type:</strong> ${rec.type || 'N/A'}</div>
+                        <div><strong>Price:</strong> ${rec.price || 'N/A'}</div>
+                        <div><strong>Score:</strong> ${rec.recommendation_score || 'N/A'}</div>
+                    </div>
+                    <div class="recommendation-reason">${rec.recommendation_reason || 'Recommended for you'}</div>
+                    <div class="click-hint">👆 Click to boost!</div>
+                </div>
+            `).join('');
+        }
+
+        // Show recommendations container after first search
+        function showRecommendationsAfterSearch() {
+            if (recommendationsContainer.style.display === 'none') {
+                recommendationsContainer.style.display = 'block';
+            }
+        }
+
+        // Handle product clicks to make them trending/viral
+        async function clickProduct(productId, productTitle) {
+            try {
+                const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                
+                // Record click interaction
+                const response = await fetch('/interaction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        product_id: productId,
+                        interaction_type: 'click'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success message
+                    showClickFeedback(productTitle);
+                    
+                    // Refresh recommendations to show updated trending items
+                    setTimeout(() => {
+                        if (recommendationsContainer.style.display !== 'none') {
+                            getRecommendationsBtn.click();
+                        }
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('Error recording click:', error);
+            }
+        }
+
+        // Show click feedback
+        function showClickFeedback(productTitle) {
+            // Create temporary feedback element
+            const feedback = document.createElement('div');
+            feedback.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #00b894, #00cec9);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 1000;
+                font-weight: bold;
+                animation: slideIn 0.3s ease;
+            `;
+            feedback.innerHTML = `🎉 "${productTitle}" is now trending!`;
+            
+            document.body.appendChild(feedback);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                feedback.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(feedback);
+                }, 300);
+            }, 3000);
+        }
+
+        // Add slide animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Load stats on page load
+        window.addEventListener('load', async function() {
+            try {
+                const response = await fetch('/stats');
+                const stats = await response.json();
+                console.log('Search engine stats:', stats);
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        });
+    </script>
+</body>
+</html>

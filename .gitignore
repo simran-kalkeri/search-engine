@@ -1,0 +1,21 @@
+# Data files
+*.csv
+*.json
+
+# Generated files
+search_index.json
+
+# Archives
+*.zip
+
+# Docs
+*.pdf
+*.docx
+
+# Python
+__pycache__/
+*.pyc
+
+# Env
+venv/
+.env
